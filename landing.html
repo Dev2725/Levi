@@ -94,6 +94,68 @@
             margin-bottom: 10px;
         }
 
+        .wizard {
+            counter-reset: step;
+            margin-top: 30px;
+        }
+
+        .wizard-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .wizard-step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .wizard-step:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            left: 19px;
+            top: 45px;
+            bottom: -25px;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .wizard-step h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .wizard-step p {
+            color: #666;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        .wizard-step code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
         footer {
             text-align: center;
             color: white;
@@ -146,7 +208,39 @@
         </div>
 
         <div class="card">
-            <h2>Get Started</h2>
+            <h2>Get Started Wizard</h2>
+            <p>Follow these simple steps to run your own AI agent company with Levi.</p>
+            <div class="wizard">
+                <div class="wizard-step">
+                    <div>
+                        <h3>Clone the Repository</h3>
+                        <p>Get the code from GitHub and switch into the project folder.</p>
+                    </div>
+                </div>
+                <div class="wizard-step">
+                    <div>
+                        <h3>Install Dependencies</h3>
+                        <p>Run <code>pnpm install</code> to install all required packages.</p>
+                    </div>
+                </div>
+                <div class="wizard-step">
+                    <div>
+                        <h3>Start the Server</h3>
+                        <p>Run <code>pnpm dev</code> to launch the Paperclip server on <code>http://localhost:3100</code>.</p>
+                    </div>
+                </div>
+                <div class="wizard-step">
+                    <div>
+                        <h3>Create Your Company</h3>
+                        <p>Open the dashboard, create a company, hire agents, and start assigning work.</p>
+                    </div>
+                </div>
+            </div>
+            <a href="LEVI_SETUP.md" class="cta">Read Setup Guide</a>
+        </div>
+
+        <div class="card">
+            <h2>Quick Start</h2>
             <p>
                 Clone the repository, install dependencies, and run the Paperclip server locally.
             </p>
@@ -154,7 +248,6 @@
 cd Levi
 pnpm install
 pnpm dev</code></pre>
-            <a href="LEVI_SETUP.md" class="cta">Read Setup Guide</a>
         </div>
 
         <footer>

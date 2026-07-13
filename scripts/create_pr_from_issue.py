@@ -3,16 +3,16 @@
 Create a GitHub Pull Request from a Paperclip issue.
 
 Usage:
-    export GITHUB_TOKEN=ghp_xxx
-    python3 scripts/create_pr_from_issue.py DEV-21
+    export GITHUB_TOKEN=***    python3 scripts/create_pr_from_issue.py DEV-22
 
 The script:
 1. Reads the Paperclip issue
-2. Creates a feature branch named feature/<identifier>
-3. Commits any current repo changes
-4. Pushes the branch to GitHub
-5. Opens a PR with the issue title/body
-6. Adds a comment linking back to Paperclip
+2. Verifies the issue belongs to the 'Paperclip Issue tracker' project
+3. Creates a feature branch named feature/<identifier>
+4. Commits only the script's own new file
+5. Pushes the branch to GitHub
+6. Opens a PR with the issue title/body
+7. Adds a comment linking back to Paperclip
 """
 
 import os
@@ -25,6 +25,7 @@ import requests
 # Configuration
 PAPERCLIP_BASE = "http://127.0.0.1:3100"
 COMPANY_ID = "1a4b9747-f550-4169-bb87-c6a1ccd8e616"
+PROJECT_ID = "3ebbb7b3-5c58-4581-8de3-4cbbdf524471"  # Paperclip Issue tracker
 REPO = "Dev2725/Levi"
 GITHUB_USER = "Dev2725"
 GIT_USER_NAME = "CTO Agent"
@@ -46,6 +47,13 @@ def get_headers():
         "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
         "Accept": "application/vnd.github+json",
     }
+
+
+def get_project_name():
+    r = requests.get(f"{PAPERCLIP_BASE}/api/companies/{COMPANY_ID}/projects/{PROJECT_ID}")
+    if r.status_code == 200:
+        return r.json().get("name", "Unknown")
+    return "Unknown"
 
 
 def get_paperclip_issue(identifier: str):
@@ -79,6 +87,19 @@ def create_pr(identifier: str):
     issue = get_paperclip_issue(identifier)
     repo_path = "/home/gayathri_g/Levi"
     branch = clean_branch_name(identifier, issue.get("title"))
+    project_name = get_project_name()
+
+    # Verify project belongs to Paperclip Issue tracker
+    print(f"Project validation: expecting '{project_name}' (id={PROJECT_ID})")
+    if issue.get("projectId") != PROJECT_ID:
+        print(f"Warning: {identifier} is not in project '{project_name}'.")
+        print(f"Current projectId: {issue.get('projectId')}")
+        response = input("Continue anyway? (y/N): ")
+        if response.lower() != "y":
+            print("Aborted.")
+            sys.exit(0)
+    else:
+        print(f"✅ {identifier} is correctly assigned to project '{project_name}'.")
 
     ensure_git_config(repo_path)
 
@@ -89,11 +110,16 @@ def create_pr(identifier: str):
     # Create feature branch
     run(f"git checkout -b {branch}", cwd=repo_path)
 
-    # Stage and commit any changes
-    run("git add -A", cwd=repo_path)
+    # Stage and commit only the relevant files (avoid extra files)
+    files_to_stage = ["scripts/create_pr_from_issue.py", "doc/PAPERCLIP_PR_WORKFLOW.md"]
+    for f in files_to_stage:
+        if os.path.exists(os.path.join(repo_path, f)):
+            run(f"git add {f}", cwd=repo_path)
     try:
+        title = issue.get('title', '').replace("'", '"')
+        description = (issue.get('description') or 'No description').replace("'", '"')
         run(
-            f"git commit -m 'feat({identifier}): {issue.get('title')}' -m '{issue.get('description') or 'No description'}'",
+            f"git commit -m 'feat({identifier}): {title}' -m '{description}'",
             cwd=repo_path,
         )
     except subprocess.CalledProcessError:
@@ -114,6 +140,7 @@ def create_pr(identifier: str):
                 f"{issue.get('description') or 'No description'}\n\n"
                 f"---\n"
                 f"*Closes {identifier}*\n"
+                f"- **Project:** {project_name}\n"
                 f"- **Paperclip status:** {issue.get('status')}\n"
                 f"- **Created by:** CTO agent via Paperclip"
             ),
@@ -126,7 +153,7 @@ def create_pr(identifier: str):
     requests.post(
         f"https://api.github.com/repos/{REPO}/issues/{pr['number']}/comments",
         headers=get_headers(),
-        json={"body": f"This PR was created from Paperclip issue {identifier}."},
+        json={"body": f"This PR was created from Paperclip issue {identifier} in project '{project_name}'."},
     )
 
     # Assign PR

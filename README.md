@@ -380,6 +380,10 @@ See [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full development guide.
 
 This is the short roadmap preview. See the full roadmap in [ROADMAP.md](ROADMAP.md).
 
+### Roadmap Details
+
+For a complete view of the roadmap, including milestones and future plans, please refer to the [ROADMAP.md](ROADMAP.md) file in this repository.
+
 <br/>
 
 ## Community & Plugins
